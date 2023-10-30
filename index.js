@@ -1,13 +1,74 @@
- const express= require('express')
+const express = require('express')
+const uuid = require('uuid')
 
- const app= express()
+const app = express()
+app.use(express.json())
 
- app.get('/users', (require,response)=>{
 
-return response.send('Hello Node')
+const users = []
 
- })
+const checkUserId = (request, response, next) => {
 
+  const { id } = request.params
+  const index = users.findIndex(user => user.id === id)
+
+  if (index < 0) {
+    return response.status(404).json({ message: "not user foound" })
+  }
+
+  request.userIndex = index
+  request.userId=id
+
+  next()
+}
+
+
+
+
+
+app.get('/users', (request, response) => {
+
+
+  return response.json(users)
+})
+
+app.post('/users', (request, response) => {
+  const { name, age } = request.body
+
+  const user = { id: uuid.v4(), name, age }
+  users.push(user)
+
+  return response.status(201).json(users)
+})
+
+app.put('/users/:id', checkUserId, (request, response) => {
+  const { name, age } = request.body
+  const index=request.userIndex
+  const id=request.userId
+  
+  const updateUser = { id, name, age}
+  
+  users[index] = updateUser
+
+  return response.json(updateUser)
+})
+
+  
+
+
+app.delete('/users/:id', checkUserId, (request, response) => {
+  
+  const index=request.userIndex
  
+  users.splice = (index, 1)
 
-app.listen(3000)
+  return response.status(204).json()
+})
+
+
+
+app.listen(3000, () => {
+
+  console.log('🚀server started on port 3000')
+})
+
